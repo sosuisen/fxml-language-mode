@@ -1,0 +1,174 @@
+{
+    "name": "Maven POM",
+    "scopeName": "text.xml.fxml",
+    "fileTypes": [
+        "fxml"
+    ],
+    "patterns": [
+        {
+            "include": "#xml-decl"
+        },
+        {
+            "include": "#language-decl"
+        },
+        {
+            "include": "#import"
+        },
+        {
+            "include": "#fx-attr"
+        },
+        {
+            "include": "#generic-attr"
+        },
+        {
+            "include": "#property-tag"
+        },
+        {
+            "include": "#generic-tags"
+        },
+        {
+            "include": "#comments"
+        }
+    ],
+    "repository": {
+        "xml-decl": {
+            "patterns": [
+                {
+                    "begin": "<\\?xml",
+                    "end": "\\?>",
+                    "name": "comment"
+                }
+            ]
+        },
+        "language-decl": {
+            "patterns": [
+                {
+                    "begin": "<\\?language",
+                    "end": "\\?>",
+                    "name": "comment"
+                }
+            ]
+        },
+        "import": {
+            "patterns": [
+                {
+                    "match": "(<\\?import\\s+)([a-zA-Z][a-zA-Z0-9.]+?)(\\*?)(\\?>)",
+                    "captures": {
+                        "1": {
+                            "name": "variable"
+                        },
+                        "2": {
+                            "name": "keyword"
+                        },
+                        "3": {
+                            "name": "storage.type.java"
+                        },
+                        "4": {
+                            "name": "variable"
+                        }
+                    }
+                }
+            ]
+        },
+        "fx-attr": {
+            "patterns": [
+                {
+                    "match": "(fx:[a-zA-Z0-9]+)\\s*?(=)\\s*?(\"[^\"]*\")",
+                    "captures": {
+                        "1": {
+                            "name": "constant.character.set.regexp"
+                        },
+                        "2": {
+                            "name": "variable"
+                        },
+                        "3": {
+                            "name": "storage.type.java"
+                        }
+                    }
+                }
+            ]
+        },
+        "generic-attr": {
+            "patterns": [
+                {
+                    "match": "([a-zA-Z0-9:.]+)\\s*?(=)\\s*?(\"[^\"]*\")",
+                    "captures": {
+                        "1": {
+                            "name": "support.constant.color"
+                        },
+                        "2": {
+                            "name": "variable"
+                        },
+                        "3": {
+                            "name": "storage.type.java"
+                        }
+                    }
+                }
+            ]
+        },
+        "property-tag": {
+            "patterns": [
+                {
+                    "match": "(<)(/?)([a-z][a-z0-9:._-]+?\\b[^>]*>)",
+                    "captures": {
+                        "1": {
+                            "name": "variable"
+                        },
+                        "2": {
+                            "name": "keyword"
+                        },
+                        "3": {
+                            "name": "variable"
+                        }
+                    }
+                }
+            ]
+        },
+        "generic-tags": {
+            "patterns": [
+                {
+                    "match": "(<)(/?)([A-Za-z][A-Za-z0-9:._-]+?>)",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.control"
+                        },
+                        "2": {
+                            "name": "keyword"
+                        },
+                        "3": {
+                            "name": "keyword.control"
+                        }
+                    }
+                },
+                {
+                    "match": "<[A-Za-z][A-Za-z0-9:._-]+?\\s",
+                    "name": "keyword.control"
+                },
+                {
+                    "match": "(/?)(>)",
+                    "captures": {
+                        "1": {
+                            "name": "keyword"
+                        },
+                        "2": {
+                            "name": "keyword.control"
+                        }
+                    }
+                }
+            ]
+        },
+        "comments": {
+            "patterns": [
+                {
+                    "match": "<!--[^-]*-->",
+                    "name": "comment"
+                },
+                {
+                    "begin": "<!--",
+                    "end": "-->",
+                    "name": "comment"
+                }
+            ]
+        }
+    }
+}

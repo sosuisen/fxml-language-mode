@@ -1,0 +1,32 @@
+// https://code.visualstudio.com/api/language-extensions/language-configuration-guide
+{
+    "comments": {
+        "lineComment": "<!--",
+        "blockComment": [ "<!--", "-->" ]
+    },
+    "brackets": [
+        ["<", ">"],
+        ["{", "}"],
+        ["(", ")"]
+    ],
+    "autoClosingPairs": [
+        { "open": "<", "close": ">" },
+        { "open": "\"", "close": "\"" },
+        { "open": "'", "close": "'" },
+        { "open": "{", "close": "}" },
+        { "open": "[", "close": "]" },
+        { "open": "(", "close": ")" }
+    ],
+    "surroundingPairs": [
+        ["<", ">"],
+        ["\"", "\""],
+        ["'", "'"],
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"]
+    ],
+    "indentationRules": {
+        "increaseIndentPattern": "<[^/>]*>$",
+        "decreaseIndentPattern": "^</"
+    },
+} 
