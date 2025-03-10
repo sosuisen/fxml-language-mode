@@ -109,7 +109,7 @@
         "property-tag": {
             "patterns": [
                 {
-                    "match": "(<)(/?)([a-z][a-z0-9:._-]+?\\b[^>]*>)",
+                    "match": "(<)(/?)([a-z][a-zA-Z0-9:._-]+?\\b[^>]*>)",
                     "captures": {
                         "1": {
                             "name": "variable"
