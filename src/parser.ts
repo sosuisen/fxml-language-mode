@@ -86,7 +86,7 @@ export function parseXml(xml: string): XmlNode {
             // End XML Declaration
             if (inDeclaration && xml[i - 1] === '?') {
                 const rawContent = xml.substring(tagStart, i + 1);
-                // <?の後の文字列を取得（スペースまで）
+
                 const declName = rawContent.substring(2, rawContent.indexOf(' ')).trim();
                 const decl: XmlNode = {
                     type: 'declaration',
@@ -150,7 +150,7 @@ export function parseAttributes(tagContent: string): Map<string, string> {
     let inValue = false;
     let quote = '';
     let collectingAttrName = false;
-    let waitingForValue = false;  // =の後の値待ち状態を追加
+    let waitingForValue = false;
 
     for (let i = 1; i < parts.length; i++) {
         const part = parts[i];
@@ -158,15 +158,12 @@ export function parseAttributes(tagContent: string): Map<string, string> {
 
         if (!inValue) {
             if (waitingForValue) {
-                // =の後の値を処理
                 if (part.startsWith('"') || part.startsWith("'")) {
                     if (part.endsWith(part[0])) {
-                        // 一つのパートで完結する値
                         attrs.set(currentAttr, part.slice(1, -1));
                         currentAttr = '';
                         waitingForValue = false;
                     } else {
-                        // 複数パートにまたがる値の開始
                         quote = part[0];
                         currentValue = part.substring(1);
                         inValue = true;
@@ -174,7 +171,6 @@ export function parseAttributes(tagContent: string): Map<string, string> {
                     }
                 }
             } else if (collectingAttrName) {
-                // 属性名の続きを収集中
                 if (part.includes('=')) {
                     const [attrNameEnd, ...valueParts] = part.split('=');
                     currentAttr = (currentAttr + ' ' + attrNameEnd).trim();
