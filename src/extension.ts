@@ -184,7 +184,7 @@ export function activate(context: vscode.ExtensionContext) {
             const filePath = uri.fsPath;
             if (process.platform === 'darwin' && sceneBuilderPath.endsWith('.app')) {
                 // macOS when .app bundle
-                child_process.exec(`open -a "${sceneBuilderPath}" "${filePath}"`, async (error) => {
+                child_process.exec(`open -a "${sceneBuilderPath}" --args "${filePath}"`, async (error) => {
                     if (error) {
                         const result = await vscode.window.showErrorMessage(
                             'Failed to open Scene Builder. Would you like to set a new Scene Builder path?',
