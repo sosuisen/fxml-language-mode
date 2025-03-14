@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { XmlNode, parseXml } from './parser';
+import * as child_process from 'child_process';
 
 const fxmlElements: string[] = [];
 
@@ -68,7 +69,167 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    context.subscriptions.push(completionProvider, formatProvider);
+    const setSceneBuilderPath = vscode.commands.registerCommand('fxml.setSceneBuilderPath', async () => {
+        const options: vscode.OpenDialogOptions = {
+            canSelectMany: false,
+            filters: process.platform === 'win32' ? {
+                'Executable': ['exe']
+            } : process.platform === 'darwin' ? {
+                'Application': ['app'],
+                'Executable': ['*']
+            } : {
+                'Executable': ['*']
+            },
+            title: 'Select Scene Builder Executable'
+        };
+
+        const fileUri = await vscode.window.showOpenDialog(options);
+        if (fileUri && fileUri[0]) {
+            const sceneBuilderPath = fileUri[0].fsPath;
+            await context.globalState.update('sceneBuilderPath', sceneBuilderPath);
+            vscode.window.showInformationMessage(`Scene Builder path set to: ${sceneBuilderPath}`);
+        }
+    });
+
+    const removeSceneBuilderPath = vscode.commands.registerCommand('fxml.removeSceneBuilderPath', async () => {
+        const sceneBuilderPath = context.globalState.get<string>('sceneBuilderPath');
+        if (sceneBuilderPath) {
+            const result = await vscode.window.showWarningMessage(
+                'Are you sure you want to remove the Scene Builder path?',
+                'Yes',
+                'No'
+            );
+
+            if (result === 'Yes') {
+                await context.globalState.update('sceneBuilderPath', undefined);
+                vscode.window.showInformationMessage('Scene Builder path has been removed');
+            }
+        } else {
+            vscode.window.showInformationMessage('Scene Builder path is not set');
+        }
+    });
+
+    const openInSceneBuilder = vscode.commands.registerCommand('fxml.openInSceneBuilder', async (uri: vscode.Uri) => {
+        let sceneBuilderPath = context.globalState.get<string>('sceneBuilderPath');
+
+        if (!sceneBuilderPath) {
+            if (process.platform === 'win32') {
+                // scoop install path
+                const userProfile = process.env.USERPROFILE;
+                const scoopPath = `${userProfile}\\scoop\\apps\\scene-builder\\current\\SceneBuilder.exe`;
+
+                // AppData Local path
+                const localAppData = process.env.LOCALAPPDATA;
+                const appDataPath = `${localAppData}\\SceneBuilder\\SceneBuilder.exe`;
+
+                try {
+                    await vscode.workspace.fs.stat(vscode.Uri.file(scoopPath));
+                    sceneBuilderPath = scoopPath;
+                    await context.globalState.update('sceneBuilderPath', sceneBuilderPath);
+                    vscode.window.showInformationMessage(`Scene Builder found at scoop location: ${sceneBuilderPath}`);
+                } catch {
+                    try {
+                        await vscode.workspace.fs.stat(vscode.Uri.file(appDataPath));
+                        sceneBuilderPath = appDataPath;
+                        await context.globalState.update('sceneBuilderPath', sceneBuilderPath);
+                        vscode.window.showInformationMessage(`Scene Builder found at AppData location: ${sceneBuilderPath}`);
+                    } catch {
+                        const result = await vscode.window.showWarningMessage(
+                            'Scene Builder path is not set. Would you like to set it now?',
+                            'Yes',
+                            'No'
+                        );
+
+                        if (result === 'Yes') {
+                            vscode.commands.executeCommand('fxml.setSceneBuilderPath');
+                        }
+                        return;
+                    }
+                }
+            } else if (process.platform === 'darwin') {
+                // macOS default path
+                const macPath = '/Applications/SceneBuilder.app';
+                try {
+                    await vscode.workspace.fs.stat(vscode.Uri.file(macPath));
+                    sceneBuilderPath = macPath;
+                    await context.globalState.update('sceneBuilderPath', sceneBuilderPath);
+                    vscode.window.showInformationMessage(`Scene Builder found at default location: ${sceneBuilderPath}`);
+                } catch {
+                    const result = await vscode.window.showWarningMessage(
+                        'Scene Builder path is not set. Would you like to set it now?',
+                        'Yes',
+                        'No'
+                    );
+
+                    if (result === 'Yes') {
+                        vscode.commands.executeCommand('fxml.setSceneBuilderPath');
+                    }
+                    return;
+                }
+            } else {
+                const result = await vscode.window.showWarningMessage(
+                    'Scene Builder path is not set. Would you like to set it now?',
+                    'Yes',
+                    'No'
+                );
+
+                if (result === 'Yes') {
+                    vscode.commands.executeCommand('fxml.setSceneBuilderPath');
+                }
+                return;
+            }
+        }
+
+        try {
+            const filePath = uri.fsPath;
+            if (process.platform === 'darwin' && sceneBuilderPath.endsWith('.app')) {
+                // macOS when .app bundle
+                child_process.exec(`open -a "${sceneBuilderPath}" "${filePath}"`, async (error) => {
+                    if (error) {
+                        const result = await vscode.window.showErrorMessage(
+                            'Failed to open Scene Builder. Would you like to set a new Scene Builder path?',
+                            'Yes',
+                            'No'
+                        );
+                        if (result === 'Yes') {
+                            vscode.commands.executeCommand('fxml.setSceneBuilderPath');
+                        }
+                    }
+                });
+            } else {
+                // normal executable file
+                child_process.exec(`"${sceneBuilderPath}" "${filePath}"`, async (error) => {
+                    if (error) {
+                        const result = await vscode.window.showErrorMessage(
+                            'Failed to open Scene Builder. Would you like to set a new Scene Builder path?',
+                            'Yes',
+                            'No'
+                        );
+                        if (result === 'Yes') {
+                            vscode.commands.executeCommand('fxml.setSceneBuilderPath');
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            const result = await vscode.window.showErrorMessage(
+                'Error opening Scene Builder. Would you like to set a new Scene Builder path?',
+                'Yes',
+                'No'
+            );
+            if (result === 'Yes') {
+                vscode.commands.executeCommand('fxml.setSceneBuilderPath');
+            }
+        }
+    });
+
+    context.subscriptions.push(
+        completionProvider,
+        formatProvider,
+        setSceneBuilderPath,
+        removeSceneBuilderPath,
+        openInSceneBuilder
+    );
 }
 
 let foundFirstFxmlElement: boolean = false;
@@ -109,7 +270,7 @@ function formatNode(node: XmlNode, depth: number, parentName?: string): string {
                 result += indent + '<!--  -->\n';
             }
         } else if (child.type === 'element') {
-            // JavaFX要素の最初の出現をチェック
+            // check first appearance of JavaFX element
             if (!foundFirstFxmlElement && child.name && fxmlElements.includes(child.name)) {
                 result += '\n';
                 foundFirstFxmlElement = true;

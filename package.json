@@ -13,9 +13,32 @@
         "vscode": "^1.96.0"
     },
     "categories": [
-        "Formatters"
+        "Programming Languages"
     ],
     "contributes": {
+        "commands": [
+            {
+                "command": "fxml.setSceneBuilderPath",
+                "title": "FXML: Set Scene Builder Path"
+            },
+            {
+                "command": "fxml.removeSceneBuilderPath",
+                "title": "FXML: Remove Scene Builder Path"
+            },
+            {
+                "command": "fxml.openInSceneBuilder",
+                "title": "Open in Scene Builder"
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "when": "resourceExtname == .fxml",
+                    "command": "fxml.openInSceneBuilder",
+                    "group": "navigation"
+                }
+            ]
+        },
         "languages": [
             {
                 "id": "fxml",
