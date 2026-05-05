@@ -181,7 +181,14 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         try {
-            const filePath = uri.fsPath;
+            let filePath = uri.fsPath;
+            // WSL path fix: when Scene Builder is a Windows app (/mnt/...), convert /mnt/c/... to C:\...
+            if (/^\/mnt\//i.test(sceneBuilderPath)) {
+                filePath = filePath.replace(/^\/mnt\/([a-z])\/(.*)/i, (_, drive, rest) =>
+                    `${drive.toUpperCase()}:\\${rest.replace(/\//g, '\\')}`
+                );
+            }
+
             if (process.platform === 'darwin' && sceneBuilderPath.endsWith('.app')) {
                 // macOS when .app bundle
                 child_process.exec(`open -a "${sceneBuilderPath}" --args "${filePath}"`, async (error) => {
